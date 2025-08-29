@@ -161,6 +161,16 @@
 </head>
 <body>
 
+    <script>
+        const senhaCorreta = "unidas";
+        const senhaDigitada = prompt("Por favor, digite a senha para acessar a página:");
+
+        if (senhaDigitada !== senhaCorreta) {
+            alert("Senha incorreta. Acesso negado!");
+            window.location.href = "https://www.google.com.br/";
+        }
+    </script>
+
     <h1>Controle de Estacionamento</h1>
 
     <div class="container">
@@ -191,6 +201,9 @@
     </div>
 
     <script>
+        // TODO: Substitua esta URL pela que o Vercel te deu após o deploy.
+        const serverUrl = 'https://unidas-five.vercel.app';
+
         // Referências para os elementos DOM
         const formAdicionar = document.getElementById('form-adicionar');
         const placaInput = document.getElementById('placa-input');
@@ -204,16 +217,21 @@
         // Regex para validar o novo padrão de placa Mercosul (LLLNLNN)
         const placaRegex = /^[A-Z]{3}\d[A-Z]\d{2}$/;
 
-        // Carrega os dados do localStorage ou inicializa um array vazio
-        let carros = JSON.parse(localStorage.getItem('estacionamentoCarros')) || [];
+        let carros = [];
 
         // --- Funções Principais ---
 
         /**
-         * Salva o array 'carros' no localStorage.
+         * Carrega os dados do servidor.
          */
-        function salvarDados() {
-            localStorage.setItem('estacionamentoCarros', JSON.stringify(carros));
+        function carregarDadosDoServidor() {
+            fetch(`${serverUrl}/carros`)
+                .then(response => response.json())
+                .then(data => {
+                    carros = data;
+                    renderizarCarros();
+                })
+                .catch(error => console.error('Erro ao carregar dados:', error));
         }
 
         /**
@@ -265,43 +283,61 @@
         }
 
         /**
-         * Adiciona um novo carro ao array 'carros' se a placa ainda não estiver cadastrada.
-         * @param {string} placa - A placa do carro.
-         * @param {string} piso - O piso ('g1' ou 'g3').
-         * @param {string} horaEntrada - A hora de entrada.
+         * Adiciona um novo carro via API.
          */
         function adicionarCarro(placa, piso, horaEntrada) {
-            const placaJaExiste = carros.some(carro => carro.placa === placa);
-            if (placaJaExiste) {
-                alert('Esta placa já está cadastrada no estacionamento!');
-                return;
-            }
-
-            carros.push({ placa, piso, horaEntrada });
-            salvarDados();
-            renderizarCarros();
+            fetch(`${serverUrl}/carros`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ placa, piso, horaEntrada })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao adicionar carro.');
+            })
+            .then(() => carregarDadosDoServidor())
+            .catch(error => console.error('Erro:', error));
         }
 
         /**
-         * Remove um carro do array pelo número da placa.
-         * @param {string} placa - A placa do carro a ser removido.
+         * Remove um carro via API.
          */
         function removerCarro(placa) {
-            carros = carros.filter(carro => carro.placa !== placa);
-            salvarDados();
-            renderizarCarros();
+            fetch(`${serverUrl}/carros/${placa}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao remover carro.');
+            })
+            .then(() => carregarDadosDoServidor())
+            .catch(error => console.error('Erro:', error));
         }
 
         /**
-         * Transfere um carro entre os pisos.
-         * @param {string} placa - A placa do carro a ser transferido.
+         * Transfere um carro entre os pisos via API.
          */
         function transferirCarro(placa) {
             const carroParaTransferir = carros.find(carro => carro.placa === placa);
             if (carroParaTransferir) {
-                carroParaTransferir.piso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
-                salvarDados();
-                renderizarCarros();
+                const novoPiso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
+                fetch(`${serverUrl}/carros/${placa}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ piso: novoPiso })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro ao transferir carro.');
+                })
+                .then(() => carregarDadosDoServidor())
+                .catch(error => console.error('Erro:', error));
             }
         }
 
@@ -310,7 +346,6 @@
         // Evento de envio do formulário
         formAdicionar.addEventListener('submit', (e) => {
             e.preventDefault();
-
             const placa = placaInput.value.toUpperCase().trim();
             const piso = pisoSelect.value;
             const horaEntrada = new Date().toLocaleTimeString('pt-BR');
@@ -351,8 +386,8 @@
             }
         });
 
-        // Chamada inicial para renderizar a lista ao carregar a página
-        renderizarCarros();
+        // Chamada inicial para carregar a lista ao carregar a página
+        carregarDadosDoServidor();
     </script>
 </body>
 </html>
