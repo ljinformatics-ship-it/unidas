@@ -1,11 +1,8 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const { createClient } = require('@vercel/kv');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
-const CARROS_FILE = path.join(__dirname, 'carros.json');
 
 app.use(bodyParser.json());
 
@@ -16,76 +13,91 @@ app.use((req, res, next) => {
     next();
 });
 
-// Adicione esta nova rota para a página inicial
+// Inicializa o cliente Vercel KV
+const kv = createClient({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+});
+
+// Adicione esta rota para a página inicial
 app.get('/', (req, res) => {
     res.send('Servidor está funcionando! Use as rotas de API como /carros.');
 });
 
-function readCarros() {
+// Rota para ler todos os carros do banco de dados
+app.get('/carros', async (req, res) => {
     try {
-        const data = fs.readFileSync(CARROS_FILE, 'utf8');
-        return JSON.parse(data);
+        // Acessa a lista de carros na chave 'carros'
+        const carros = await kv.get('carros') || [];
+        res.json(carros);
     } catch (error) {
-        console.error('Erro ao ler o arquivo de carros:', error);
-        return [];
+        console.error('Erro ao ler dados do KV:', error);
+        res.status(500).json({ message: 'Erro ao carregar os dados.' });
     }
-}
-
-function writeCarros(carros) {
-    try {
-        fs.writeFileSync(CARROS_FILE, JSON.stringify(carros, null, 2), 'utf8');
-    } catch (error) {
-        console.error('Erro ao escrever no arquivo de carros:', error);
-    }
-}
-
-app.get('/carros', (req, res) => {
-    const carros = readCarros();
-    res.json(carros);
 });
 
-app.post('/carros', (req, res) => {
+// Rota para adicionar um novo carro
+app.post('/carros', async (req, res) => {
     const { placa, piso, horaEntrada } = req.body;
-    const carros = readCarros();
+    try {
+        const carros = await kv.get('carros') || [];
+        const placaExiste = carros.some(carro => carro.placa.toUpperCase() === placa.toUpperCase());
+        
+        if (placaExiste) {
+            return res.status(409).json({ message: 'Placa já cadastrada.' });
+        }
 
-    const placaExiste = carros.some(carro => carro.placa.toUpperCase() === placa.toUpperCase());
-    if (placaExiste) {
-        return res.status(409).json({ message: 'Placa já cadastrada.' });
+        const novoCarro = { placa, piso, horaEntrada };
+        carros.push(novoCarro);
+        await kv.set('carros', carros);
+        res.status(201).json({ message: 'Carro adicionado com sucesso!' });
+
+    } catch (error) {
+        console.error('Erro ao adicionar carro:', error);
+        res.status(500).json({ message: 'Erro ao adicionar carro.' });
     }
-
-    carros.push({ placa, piso, horaEntrada });
-    writeCarros(carros);
-    res.status(201).json({ message: 'Carro adicionado com sucesso!' });
 });
 
-app.put('/carros/:placa', (req, res) => {
+// Rota para transferir um carro
+app.put('/carros/:placa', async (req, res) => {
     const placa = req.params.placa.toUpperCase();
     const { piso } = req.body;
-    const carros = readCarros();
+    try {
+        const carros = await kv.get('carros') || [];
+        const carroIndex = carros.findIndex(carro => carro.placa.toUpperCase() === placa);
 
-    const carroIndex = carros.findIndex(carro => carro.placa.toUpperCase() === placa);
-    if (carroIndex === -1) {
-        return res.status(404).json({ message: 'Carro não encontrado.' });
+        if (carroIndex === -1) {
+            return res.status(404).json({ message: 'Carro não encontrado.' });
+        }
+
+        carros[carroIndex].piso = piso;
+        await kv.set('carros', carros);
+        res.json({ message: 'Carro transferido com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao transferir carro:', error);
+        res.status(500).json({ message: 'Erro ao transferir carro.' });
     }
-
-    carros[carroIndex].piso = piso;
-    writeCarros(carros);
-    res.json({ message: 'Carro transferido com sucesso!' });
 });
 
-app.delete('/carros/:placa', (req, res) => {
+// Rota para remover um carro
+app.delete('/carros/:placa', async (req, res) => {
     const placa = req.params.placa.toUpperCase();
-    const carros = readCarros();
+    try {
+        const carros = await kv.get('carros') || [];
+        const newCarros = carros.filter(carro => carro.placa.toUpperCase() !== placa);
 
-    const newCarros = carros.filter(carro => carro.placa.toUpperCase() !== placa);
-    if (newCarros.length === carros.length) {
-        return res.status(404).json({ message: 'Carro não encontrado.' });
+        if (newCarros.length === carros.length) {
+            return res.status(404).json({ message: 'Carro não encontrado.' });
+        }
+
+        await kv.set('carros', newCarros);
+        res.json({ message: 'Carro removido com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao remover carro:', error);
+        res.status(500).json({ message: 'Erro ao remover carro.' });
     }
-
-    writeCarros(newCarros);
-    res.json({ message: 'Carro removido com sucesso!' });
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`Servidor rodando em http://localhost:${process.env.PORT || 3000}`);
 });
