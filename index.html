@@ -1,268 +1,268 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Estacionamento</title>
-    <style>
-        /* (Seu CSS aqui, sem mudanças) */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estacionamento</title>
+    <style>
+        /* (Seu CSS aqui, sem mudanças) */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
 
-        h1, h2 {
-            color: #333;
-        }
+        h1, h2 {
+            color: #333;
+        }
 
-        .container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
 
-        .secao {
-            flex: 1;
-            min-width: 300px;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+        .secao {
+            flex: 1;
+            min-width: 300px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
-        .form-adicionar {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .form-adicionar {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-        .form-adicionar input, .form-adicionar select, .form-adicionar button {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
+        .form-adicionar input, .form-adicionar select, .form-adicionar button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
 
-        .form-adicionar button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+        .form-adicionar button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
 
-        .form-adicionar button:hover {
-            background-color: #0056b3;
-        }
+        .form-adicionar button:hover {
+            background-color: #0056b3;
+        }
 
-        .lista-carros {
-            list-style-type: none;
-            padding: 0;
-        }
+        .lista-carros {
+            list-style-type: none;
+            padding: 0;
+        }
 
-        .carro-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
+        .carro-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
 
-        .carro-item:last-child {
-            border-bottom: none;
-        }
+        .carro-item:last-child {
+            border-bottom: none;
+        }
 
-        .carro-info {
-            flex-grow: 1;
-        }
+        .carro-info {
+            flex-grow: 1;
+        }
 
-        .carro-placa {
-            font-weight: bold;
-        }
+        .carro-placa {
+            font-weight: bold;
+        }
 
-        .carro-hora {
-            color: #777;
-            font-size: 0.9em;
-        }
-        
-        .botoes-carro {
-            display: flex;
-            gap: 5px;
-        }
+        .carro-hora {
+            color: #777;
+            font-size: 0.9em;
+        }
+        
+        .botoes-carro {
+            display: flex;
+            gap: 5px;
+        }
 
-        .remover-btn, .transferir-btn {
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+        .remover-btn, .transferir-btn {
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-        .remover-btn {
-            background-color: #dc3545;
-        }
-        
-        .remover-btn:hover {
-            background-color: #c82333;
-        }
+        .remover-btn {
+            background-color: #dc3545;
+        }
+        
+        .remover-btn:hover {
+            background-color: #c82333;
+        }
 
-        .transferir-btn {
-            background-color: #ffc107;
-        }
+        .transferir-btn {
+            background-color: #ffc107;
+        }
 
-        .transferir-btn:hover {
-            background-color: #e0a800;
-        }
-    </style>
+        .transferir-btn:hover {
+            background-color: #e0a800;
+        }
+    </style>
 </head>
 <body>
 
-    <script>
-        const senhaCorreta = "unidas"; // Troque por uma senha de sua escolha
-        const senhaDigitada = prompt("Por favor, digite a senha para acessar a página:");
+    <script>
+        const senhaCorreta = "unidas"; // Troque por uma senha de sua escolha
+        const senhaDigitada = prompt("Por favor, digite a senha para acessar a página:");
 
-        if (senhaDigitada !== senhaCorreta) {
-            alert("Senha incorreta. Acesso negado!");
-            window.location.href = "https://www.google.com.br/"; // Redireciona para o Google ou outra página
-        }
-    </script>
+        if (senhaDigitada !== senhaCorreta) {
+            alert("Senha incorreta. Acesso negado!");
+            window.location.href = "https://www.google.com.br/"; // Redireciona para o Google ou outra página
+        }
+    </script>
 
-    <h1>Controle de Estacionamento</h1>
+    <h1>Controle de Estacionamento</h1>
 
-    <div class="container">
-        <div class="secao">
-            <h2>Adicionar Carro</h2>
-            <form id="form-adicionar" class="form-adicionar">
-                <input type="text" id="placa-input" placeholder="Placa do Carro" maxlength="7" required>
-                <select id="piso-select">
-                    <option value="g1">Piso G1</option>
-                    <option value="g3">Piso G3</option>
-                </select>
-                <button type="submit">Adicionar Carro</button>
-            </form>
-        </div>
+    <div class="container">
+        <div class="secao">
+            <h2>Adicionar Carro</h2>
+            <form id="form-adicionar" class="form-adicionar">
+                <input type="text" id="placa-input" placeholder="Placa do Carro" maxlength="7" required>
+                <select id="piso-select">
+                    <option value="g1">Piso G1</option>
+                    <option value="g3">Piso G3</option>
+                </select>
+                <button type="submit">Adicionar Carro</button>
+            </form>
+        </div>
 
-        <div class="secao">
-            <h2>Piso G1</h2>
-            <ul id="lista-g1" class="lista-carros">
-            </ul>
-        </div>
+        <div class="secao">
+            <h2>Piso G1</h2>
+            <ul id="lista-g1" class="lista-carros">
+            </ul>
+        </div>
 
-        <div class="secao">
-            <h2>Piso G3</h2>
-            <ul id="lista-g3" class="lista-carros">
-            </ul>
-        </div>
-    </div>
+        <div class="secao">
+            <h2>Piso G3</h2>
+            <ul id="lista-g3" class="lista-carros">
+            </ul>
+        </div>
+    </div>
 
-    <script>
-        const formAdicionar = document.getElementById('form-adicionar');
-        const placaInput = document.getElementById('placa-input');
-        const pisoSelect = document.getElementById('piso-select');
-        const listaG1 = document.getElementById('lista-g1');
-        const listaG3 = document.getElementById('lista-g3');
+    <script>
+        const formAdicionar = document.getElementById('form-adicionar');
+        const placaInput = document.getElementById('placa-input');
+        const pisoSelect = document.getElementById('piso-select');
+        const listaG1 = document.getElementById('lista-g1');
+        const listaG3 = document.getElementById('lista-g3');
 
-        // Regex para validar o formato de placa "LLLNLNN"
-        const placaRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
+        // Regex para validar o formato de placa "LLLNLNN"
+        const placaRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
 
-        // Carrega os dados do localStorage ou inicializa um array vazio
-        let carros = JSON.parse(localStorage.getItem('estacionamentoCarros')) || [];
+        // Carrega os dados do localStorage ou inicializa um array vazio
+        let carros = JSON.parse(localStorage.getItem('estacionamentoCarros')) || [];
 
-        // Função para salvar os dados no localStorage
-        function salvarDados() {
-            localStorage.setItem('estacionamentoCarros', JSON.stringify(carros));
-        }
+        // Função para salvar os dados no localStorage
+        function salvarDados() {
+            localStorage.setItem('estacionamentoCarros', JSON.stringify(carros));
+        }
 
-        // Função para renderizar a lista de carros na interface
-        function renderizarCarros() {
-            listaG1.innerHTML = '';
-            listaG3.innerHTML = '';
+        // Função para renderizar a lista de carros na interface
+        function renderizarCarros() {
+            listaG1.innerHTML = '';
+            listaG3.innerHTML = '';
 
-            carros.forEach(carro => {
-                const novoCarro = document.createElement('li');
-                novoCarro.className = 'carro-item';
-                novoCarro.dataset.placa = carro.placa;
+            carros.forEach(carro => {
+                const novoCarro = document.createElement('li');
+                novoCarro.className = 'carro-item';
+                novoCarro.dataset.placa = carro.placa;
 
-                const botoesHTML = carro.piso === 'g1'
-                    ? '<button class="transferir-btn">Transferir para G3</button>'
-                    : '<button class="transferir-btn">Transferir para G1</button>';
+                const botoesHTML = carro.piso === 'g1'
+                    ? '<button class="transferir-btn">Transferir para G3</button>'
+                    : '<button class="transferir-btn">Transferir para G1</button>';
 
-                novoCarro.innerHTML = `
-                    <div class="carro-info">
-                        <span class="carro-placa">${carro.placa}</span>
-                        <br>
-                        <span class="carro-hora">Entrada: ${carro.horaEntrada}</span>
-                    </div>
-                    <div class="botoes-carro">
-                        <button class="remover-btn">Remover</button>
-                        ${botoesHTML}
-                    </div>
-                `;
+                novoCarro.innerHTML = `
+                    <div class="carro-info">
+                        <span class="carro-placa">${carro.placa}</span>
+                        <br>
+                        <span class="carro-hora">Entrada: ${carro.horaEntrada}</span>
+                    </div>
+                    <div class="botoes-carro">
+                        <button class="remover-btn">Remover</button>
+                        ${botoesHTML}
+                    </div>
+                `;
 
-                if (carro.piso === 'g1') {
-                    listaG1.appendChild(novoCarro);
-                } else {
-                    listaG3.appendChild(novoCarro);
-                }
+                if (carro.piso === 'g1') {
+                    listaG1.appendChild(novoCarro);
+                } else {
+                    listaG3.appendChild(novoCarro);
+                }
 
-                novoCarro.querySelector('.remover-btn').addEventListener('click', () => {
-                    removerCarro(carro.placa);
-                });
+                novoCarro.querySelector('.remover-btn').addEventListener('click', () => {
+                    removerCarro(carro.placa);
+                });
 
-                novoCarro.querySelector('.transferir-btn').addEventListener('click', () => {
-                    transferirCarro(carro.placa);
-                });
-            });
-        }
+                novoCarro.querySelector('.transferir-btn').addEventListener('click', () => {
+                    transferirCarro(carro.placa);
+                });
+            });
+        }
 
-        function adicionarCarro(placa, piso, horaEntrada) {
-            const placaJaExiste = carros.some(carro => carro.placa === placa);
-            if (placaJaExiste) {
-                alert('Esta placa já está cadastrada no estacionamento!');
-                return;
-            }
+        function adicionarCarro(placa, piso, horaEntrada) {
+            const placaJaExiste = carros.some(carro => carro.placa === placa);
+            if (placaJaExiste) {
+                alert('Esta placa já está cadastrada no estacionamento!');
+                return;
+            }
 
-            carros.push({ placa, piso, horaEntrada });
-            salvarDados();
-            renderizarCarros();
-        }
+            carros.push({ placa, piso, horaEntrada });
+            salvarDados();
+            renderizarCarros();
+        }
 
-        function removerCarro(placa) {
-            carros = carros.filter(carro => carro.placa !== placa);
-            salvarDados();
-            renderizarCarros();
-        }
+        function removerCarro(placa) {
+            carros = carros.filter(carro => carro.placa !== placa);
+            salvarDados();
+            renderizarCarros();
+        }
 
-        function transferirCarro(placa) {
-            const carroParaTransferir = carros.find(carro => carro.placa === placa);
-            if (carroParaTransferir) {
-                carroParaTransferir.piso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
-                salvarDados();
-                renderizarCarros();
-            }
-        }
+        function transferirCarro(placa) {
+            const carroParaTransferir = carros.find(carro => carro.placa === placa);
+            if (carroParaTransferir) {
+                carroParaTransferir.piso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
+                salvarDados();
+                renderizarCarros();
+            }
+        }
 
-        formAdicionar.addEventListener('submit', (e) => {
-            e.preventDefault();
+        formAdicionar.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-            const placa = placaInput.value.toUpperCase().trim();
-            const piso = pisoSelect.value;
-            const horaEntrada = new Date().toLocaleTimeString('pt-BR');
+            const placa = placaInput.value.toUpperCase().trim();
+            const piso = pisoSelect.value;
+            const horaEntrada = new Date().toLocaleTimeString('pt-BR');
 
-            if (!placaRegex.test(placa)) {
-                alert('Formato de placa inválido. Por favor, use o padrão LLLNLNN (ex: ABC1B34).');
-                return;
-            }
+            if (!placaRegex.test(placa)) {
+                alert('Formato de placa inválido. Por favor, use o padrão LLLNLNN (ex: ABC1B34).');
+                return;
+            }
 
-            adicionarCarro(placa, piso, horaEntrada);
-            placaInput.value = '';
-        });
+            adicionarCarro(placa, piso, horaEntrada);
+            placaInput.value = '';
+        });
 
-        placaInput.addEventListener('input', () => {
-            placaInput.value = placaInput.value.toUpperCase();
-        });
+        placaInput.addEventListener('input', () => {
+            placaInput.value = placaInput.value.toUpperCase();
+        });
 
-        renderizarCarros();
-    </script>
+        renderizarCarros();
+    </script>
 </body>
 </html>
