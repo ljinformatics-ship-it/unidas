@@ -156,9 +156,6 @@
     </div>
 
     <script>
-        // TODO: Altere esta URL para a do seu servidor, se não for local.
-        const serverUrl = 'http://localhost:3000';
-
         const formAdicionar = document.getElementById('form-adicionar');
         const placaInput = document.getElementById('placa-input');
         const pisoSelect = document.getElementById('piso-select');
@@ -168,91 +165,15 @@
         // Regex para validar o formato de placa "LLLNLNN"
         const placaRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
 
-        // Variável local para armazenar os carros, sincronizada com o servidor
-        let carros = [];
+        // Carrega os dados do localStorage ou inicializa um array vazio
+        let carros = JSON.parse(localStorage.getItem('estacionamentoCarros')) || [];
 
-        // --- Funções de Comunicação com o Servidor ---
-
-        /**
-         * Carrega a lista de carros do servidor.
-         */
-        function carregarDadosDoServidor() {
-            fetch(`${serverUrl}/carros`)
-                .then(response => response.json())
-                .then(data => {
-                    carros = data;
-                    renderizarCarros();
-                })
-                .catch(error => console.error('Erro ao carregar dados:', error));
+        // Função para salvar os dados no localStorage
+        function salvarDados() {
+            localStorage.setItem('estacionamentoCarros', JSON.stringify(carros));
         }
 
-        /**
-         * Adiciona um novo carro ao servidor.
-         */
-        function adicionarCarro(placa, piso, horaEntrada) {
-            const placaJaExiste = carros.some(carro => carro.placa === placa);
-            if (placaJaExiste) {
-                alert('Esta placa já está cadastrada no estacionamento!');
-                return;
-            }
-
-            fetch(`${serverUrl}/carros`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ placa, piso, horaEntrada })
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Erro ao adicionar carro.');
-            })
-            .then(() => carregarDadosDoServidor()) // Recarrega os dados para atualizar a lista
-            .catch(error => console.error('Erro:', error));
-        }
-
-        /**
-         * Remove um carro do servidor.
-         */
-        function removerCarro(placa) {
-            fetch(`${serverUrl}/carros/${placa}`, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Erro ao remover carro.');
-            })
-            .then(() => carregarDadosDoServidor())
-            .catch(error => console.error('Erro:', error));
-        }
-
-        /**
-         * Transfere um carro entre os pisos no servidor.
-         */
-        function transferirCarro(placa) {
-            const carroParaTransferir = carros.find(carro => carro.placa === placa);
-            if (carroParaTransferir) {
-                const novoPiso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
-                fetch(`${serverUrl}/carros/${placa}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ piso: novoPiso })
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Erro ao transferir carro.');
-                })
-                .then(() => carregarDadosDoServidor())
-                .catch(error => console.error('Erro:', error));
-            }
-        }
-
-        // --- Funções de Interface (sem mudanças) ---
-
+        // Função para renderizar a lista de carros na interface
         function renderizarCarros() {
             listaG1.innerHTML = '';
             listaG3.innerHTML = '';
@@ -294,7 +215,32 @@
             });
         }
 
-        // --- Gerenciamento de Eventos (sem mudanças) ---
+        function adicionarCarro(placa, piso, horaEntrada) {
+            const placaJaExiste = carros.some(carro => carro.placa === placa);
+            if (placaJaExiste) {
+                alert('Esta placa já está cadastrada no estacionamento!');
+                return;
+            }
+
+            carros.push({ placa, piso, horaEntrada });
+            salvarDados();
+            renderizarCarros();
+        }
+
+        function removerCarro(placa) {
+            carros = carros.filter(carro => carro.placa !== placa);
+            salvarDados();
+            renderizarCarros();
+        }
+
+        function transferirCarro(placa) {
+            const carroParaTransferir = carros.find(carro => carro.placa === placa);
+            if (carroParaTransferir) {
+                carroParaTransferir.piso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
+                salvarDados();
+                renderizarCarros();
+            }
+        }
 
         formAdicionar.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -316,8 +262,7 @@
             placaInput.value = placaInput.value.toUpperCase();
         });
 
-        // Carrega os dados do servidor ao iniciar a página
-        carregarDadosDoServidor();
+        renderizarCarros();
     </script>
 </body>
 </html>
