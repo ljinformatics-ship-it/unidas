@@ -5,43 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Estacionamento</title>
     <style>
-        /* (Seu CSS aqui, sem mudanças) */
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #eef2f5;
+            color: #333;
         }
 
-        h1, h2 {
+        h1 {
+            color: #1a2a4b;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
             color: #333;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
         }
 
         .container {
             display: flex;
+            justify-content: center;
             gap: 20px;
             flex-wrap: wrap;
         }
 
         .secao {
             flex: 1;
-            min-width: 300px;
+            min-width: 320px;
             background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .form-adicionar {
             margin-bottom: 20px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 15px;
         }
 
-        .form-adicionar input, .form-adicionar select, .form-adicionar button {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+        .form-adicionar input,
+        .form-adicionar select,
+        .form-adicionar button {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
         }
 
         .form-adicionar button {
@@ -49,10 +62,33 @@
             color: white;
             border: none;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
 
         .form-adicionar button:hover {
             background-color: #0056b3;
+        }
+        
+        .erro-placa {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: -10px;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            transition: visibility 0s, height 0.3s ease;
+        }
+
+        .erro-placa.visible {
+            visibility: visible;
+            height: auto;
+        }
+        
+        .contador {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
 
         .lista-carros {
@@ -64,12 +100,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 15px;
             border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
         }
 
         .carro-item:last-child {
             border-bottom: none;
+        }
+
+        .carro-item:hover {
+            background-color: #f9f9f9;
         }
 
         .carro-info {
@@ -78,6 +119,7 @@
 
         .carro-placa {
             font-weight: bold;
+            font-size: 1.1em;
         }
 
         .carro-hora {
@@ -87,15 +129,17 @@
         
         .botoes-carro {
             display: flex;
-            gap: 5px;
+            gap: 8px;
         }
 
         .remover-btn, .transferir-btn {
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px 15px;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
         }
 
         .remover-btn {
@@ -117,23 +161,14 @@
 </head>
 <body>
 
-    <script>
-        const senhaCorreta = "unidas"; // Troque por uma senha de sua escolha
-        const senhaDigitada = prompt("Por favor, digite a senha para acessar a página:");
-
-        if (senhaDigitada !== senhaCorreta) {
-            alert("Senha incorreta. Acesso negado!");
-            window.location.href = "https://www.google.com.br/"; // Redireciona para o Google ou outra página
-        }
-    </script>
-
     <h1>Controle de Estacionamento</h1>
 
     <div class="container">
         <div class="secao">
             <h2>Adicionar Carro</h2>
             <form id="form-adicionar" class="form-adicionar">
-                <input type="text" id="placa-input" placeholder="Placa do Carro" maxlength="7" required>
+                <input type="text" id="placa-input" placeholder="Placa do Carro (Ex: ABC1B34)" maxlength="7" required>
+                <div class="erro-placa" id="erro-placa">Formato de placa inválido (LLLNLNN).</div>
                 <select id="piso-select">
                     <option value="g1">Piso G1</option>
                     <option value="g3">Piso G3</option>
@@ -144,36 +179,56 @@
 
         <div class="secao">
             <h2>Piso G1</h2>
-            <ul id="lista-g1" class="lista-carros">
-            </ul>
+            <p class="contador" id="contador-g1">Vagas Ocupadas: 0</p>
+            <ul id="lista-g1" class="lista-carros"></ul>
         </div>
 
         <div class="secao">
             <h2>Piso G3</h2>
-            <ul id="lista-g3" class="lista-carros">
-            </ul>
+            <p class="contador" id="contador-g3">Vagas Ocupadas: 0</p>
+            <ul id="lista-g3" class="lista-carros"></ul>
         </div>
     </div>
 
     <script>
+        // Referências para os elementos DOM
         const formAdicionar = document.getElementById('form-adicionar');
         const placaInput = document.getElementById('placa-input');
         const pisoSelect = document.getElementById('piso-select');
         const listaG1 = document.getElementById('lista-g1');
         const listaG3 = document.getElementById('lista-g3');
+        const contadorG1 = document.getElementById('contador-g1');
+        const contadorG3 = document.getElementById('contador-g3');
+        const erroPlaca = document.getElementById('erro-placa');
 
-        // Regex para validar o formato de placa "LLLNLNN"
-        const placaRegex = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/;
+        // Regex para validar o novo padrão de placa Mercosul (LLLNLNN)
+        const placaRegex = /^[A-Z]{3}\d[A-Z]\d{2}$/;
 
         // Carrega os dados do localStorage ou inicializa um array vazio
         let carros = JSON.parse(localStorage.getItem('estacionamentoCarros')) || [];
 
-        // Função para salvar os dados no localStorage
+        // --- Funções Principais ---
+
+        /**
+         * Salva o array 'carros' no localStorage.
+         */
         function salvarDados() {
             localStorage.setItem('estacionamentoCarros', JSON.stringify(carros));
         }
 
-        // Função para renderizar a lista de carros na interface
+        /**
+         * Atualiza os contadores de vagas ocupadas em cada piso.
+         */
+        function atualizarContadores() {
+            const carrosG1Count = carros.filter(carro => carro.piso === 'g1').length;
+            const carrosG3Count = carros.filter(carro => carro.piso === 'g3').length;
+            contadorG1.textContent = `Vagas Ocupadas: ${carrosG1Count}`;
+            contadorG3.textContent = `Vagas Ocupadas: ${carrosG3Count}`;
+        }
+
+        /**
+         * Renderiza a lista de carros na interface do usuário.
+         */
         function renderizarCarros() {
             listaG1.innerHTML = '';
             listaG3.innerHTML = '';
@@ -204,17 +259,17 @@
                 } else {
                     listaG3.appendChild(novoCarro);
                 }
-
-                novoCarro.querySelector('.remover-btn').addEventListener('click', () => {
-                    removerCarro(carro.placa);
-                });
-
-                novoCarro.querySelector('.transferir-btn').addEventListener('click', () => {
-                    transferirCarro(carro.placa);
-                });
             });
+
+            atualizarContadores();
         }
 
+        /**
+         * Adiciona um novo carro ao array 'carros' se a placa ainda não estiver cadastrada.
+         * @param {string} placa - A placa do carro.
+         * @param {string} piso - O piso ('g1' ou 'g3').
+         * @param {string} horaEntrada - A hora de entrada.
+         */
         function adicionarCarro(placa, piso, horaEntrada) {
             const placaJaExiste = carros.some(carro => carro.placa === placa);
             if (placaJaExiste) {
@@ -227,12 +282,20 @@
             renderizarCarros();
         }
 
+        /**
+         * Remove um carro do array pelo número da placa.
+         * @param {string} placa - A placa do carro a ser removido.
+         */
         function removerCarro(placa) {
             carros = carros.filter(carro => carro.placa !== placa);
             salvarDados();
             renderizarCarros();
         }
 
+        /**
+         * Transfere um carro entre os pisos.
+         * @param {string} placa - A placa do carro a ser transferido.
+         */
         function transferirCarro(placa) {
             const carroParaTransferir = carros.find(carro => carro.placa === placa);
             if (carroParaTransferir) {
@@ -242,6 +305,9 @@
             }
         }
 
+        // --- Gerenciamento de Eventos ---
+
+        // Evento de envio do formulário
         formAdicionar.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -249,19 +315,43 @@
             const piso = pisoSelect.value;
             const horaEntrada = new Date().toLocaleTimeString('pt-BR');
 
+            // Validação do formato da placa
             if (!placaRegex.test(placa)) {
-                alert('Formato de placa inválido. Por favor, use o padrão LLLNLNN (ex: ABC1B34).');
+                erroPlaca.classList.add('visible');
                 return;
+            } else {
+                erroPlaca.classList.remove('visible');
             }
 
             adicionarCarro(placa, piso, horaEntrada);
-            placaInput.value = '';
+            placaInput.value = ''; // Limpa o campo de entrada
         });
 
+        // Evento para validar a placa em tempo real enquanto o usuário digita
         placaInput.addEventListener('input', () => {
-            placaInput.value = placaInput.value.toUpperCase();
+            const placa = placaInput.value.toUpperCase().trim();
+            if (placaRegex.test(placa) || placa.length < 7) {
+                erroPlaca.classList.remove('visible');
+            } else {
+                erroPlaca.classList.add('visible');
+            }
         });
 
+        // Delegação de eventos para os botões "Remover" e "Transferir"
+        document.addEventListener('click', (e) => {
+            // Se o clique foi no botão de remover
+            if (e.target.classList.contains('remover-btn')) {
+                const placa = e.target.closest('.carro-item').dataset.placa;
+                removerCarro(placa);
+            }
+            // Se o clique foi no botão de transferir
+            if (e.target.classList.contains('transferir-btn')) {
+                const placa = e.target.closest('.carro-item').dataset.placa;
+                transferirCarro(placa);
+            }
+        });
+
+        // Chamada inicial para renderizar a lista ao carregar a página
         renderizarCarros();
     </script>
 </body>
