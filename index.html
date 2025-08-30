@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estacionamento</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #eef2f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #1a2a4b;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .secao {
+            flex: 1;
+            min-width: 320px;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-adicionar {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-adicionar input,
+        .form-adicionar select,
+        .form-adicionar button {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .form-adicionar button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-adicionar button:hover {
+            background-color: #0056b3;
+        }
+        
+        .erro-placa {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: -10px;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            transition: visibility 0s, height 0.3s ease;
+        }
+
+        .erro-placa.visible {
+            visibility: visible;
+            height: auto;
+        }
+        
+        .contador {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .lista-carros {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .carro-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+
+        .carro-item:last-child {
+            border-bottom: none;
+        }
+
+        .carro-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .carro-info {
+            flex-grow: 1;
+        }
+
+        .carro-placa {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .carro-hora {
+            color: #777;
+            font-size: 0.9em;
+        }
+        
+        .botoes-carro {
+            display: flex;
+            gap: 8px;
+        }
+
+        .remover-btn, .transferir-btn {
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+
+        .remover-btn {
+            background-color: #dc3545;
+        }
+        
+        .remover-btn:hover {
+            background-color: #c82333;
+        }
+
+        .transferir-btn {
+            background-color: #ffc107;
+        }
+
+        .transferir-btn:hover {
+            background-color: #e0a800;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        const senhaCorreta = "unidas";
+        const senhaDigitada = prompt("Por favor, digite a senha para acessar a página:");
+
+        if (senhaDigitada !== senhaCorreta) {
+            alert("Senha incorreta. Acesso negado!");
+            window.location.href = "https://www.google.com.br/";
+        }
+    </script>
+
+    <h1>Controle de Estacionamento</h1>
+
+    <div class="container">
+        <div class="secao">
+            <h2>Adicionar Carro</h2>
+            <form id="form-adicionar" class="form-adicionar">
+                <input type="text" id="placa-input" placeholder="Placa do Carro (Ex: ABC1B34)" maxlength="7" required>
+                <div class="erro-placa" id="erro-placa">Formato de placa inválido (LLLNLNN).</div>
+                <select id="piso-select">
+                    <option value="g1">Piso G1</option>
+                    <option value="g3">Piso G3</option>
+                </select>
+                <button type="submit">Adicionar Carro</button>
+            </form>
+        </div>
+
+        <div class="secao">
+            <h2>Piso G1</h2>
+            <p class="contador" id="contador-g1">Vagas Ocupadas: 0</p>
+            <ul id="lista-g1" class="lista-carros"></ul>
+        </div>
+
+        <div class="secao">
+            <h2>Piso G3</h2>
+            <p class="contador" id="contador-g3">Vagas Ocupadas: 0</p>
+            <ul id="lista-g3" class="lista-carros"></ul>
+        </div>
+    </div>
+
+    <script>
+        // TODO: Substitua esta URL pela que o Vercel te deu após o deploy.
+        const serverUrl = 'https://https://unidas-g76ek7e2b-elci-s-projects.vercel.app';
+
+        // Referências para os elementos DOM
+        const formAdicionar = document.getElementById('form-adicionar');
+        const placaInput = document.getElementById('placa-input');
+        const pisoSelect = document.getElementById('piso-select');
+        const listaG1 = document.getElementById('lista-g1');
+        const listaG3 = document.getElementById('lista-g3');
+        const contadorG1 = document.getElementById('contador-g1');
+        const contadorG3 = document.getElementById('contador-g3');
+        const erroPlaca = document.getElementById('erro-placa');
+
+        // Regex para validar o novo padrão de placa Mercosul (LLLNLNN)
+        const placaRegex = /^[A-Z]{3}\d[A-Z]\d{2}$/;
+
+        let carros = [];
+
+        // --- Funções Principais ---
+
+        /**
+         * Carrega os dados do servidor.
+         */
+        function carregarDadosDoServidor() {
+            fetch(`${serverUrl}/carros`)
+                .then(response => response.json())
+                .then(data => {
+                    carros = data;
+                    renderizarCarros();
+                })
+                .catch(error => console.error('Erro ao carregar dados:', error));
+        }
+
+        /**
+         * Atualiza os contadores de vagas ocupadas em cada piso.
+         */
+        function atualizarContadores() {
+            const carrosG1Count = carros.filter(carro => carro.piso === 'g1').length;
+            const carrosG3Count = carros.filter(carro => carro.piso === 'g3').length;
+            contadorG1.textContent = `Vagas Ocupadas: ${carrosG1Count}`;
+            contadorG3.textContent = `Vagas Ocupadas: ${carrosG3Count}`;
+        }
+
+        /**
+         * Renderiza a lista de carros na interface do usuário.
+         */
+        function renderizarCarros() {
+            listaG1.innerHTML = '';
+            listaG3.innerHTML = '';
+
+            carros.forEach(carro => {
+                const novoCarro = document.createElement('li');
+                novoCarro.className = 'carro-item';
+                novoCarro.dataset.placa = carro.placa;
+
+                const botoesHTML = carro.piso === 'g1'
+                    ? '<button class="transferir-btn">Transferir para G3</button>'
+                    : '<button class="transferir-btn">Transferir para G1</button>';
+
+                novoCarro.innerHTML = `
+                    <div class="carro-info">
+                        <span class="carro-placa">${carro.placa}</span>
+                        <br>
+                        <span class="carro-hora">Entrada: ${carro.horaEntrada}</span>
+                    </div>
+                    <div class="botoes-carro">
+                        <button class="remover-btn">Remover</button>
+                        ${botoesHTML}
+                    </div>
+                `;
+
+                if (carro.piso === 'g1') {
+                    listaG1.appendChild(novoCarro);
+                } else {
+                    listaG3.appendChild(novoCarro);
+                }
+            });
+
+            atualizarContadores();
+        }
+
+        /**
+         * Adiciona um novo carro via API.
+         */
+        function adicionarCarro(placa, piso, horaEntrada) {
+            fetch(`${serverUrl}/carros`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ placa, piso, horaEntrada })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao adicionar carro.');
+            })
+            .then(() => carregarDadosDoServidor())
+            .catch(error => console.error('Erro:', error));
+        }
+
+        /**
+         * Remove um carro via API.
+         */
+        function removerCarro(placa) {
+            fetch(`${serverUrl}/carros/${placa}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Erro ao remover carro.');
+            })
+            .then(() => carregarDadosDoServidor())
+            .catch(error => console.error('Erro:', error));
+        }
+
+        /**
+         * Transfere um carro entre os pisos via API.
+         */
+        function transferirCarro(placa) {
+            const carroParaTransferir = carros.find(carro => carro.placa === placa);
+            if (carroParaTransferir) {
+                const novoPiso = carroParaTransferir.piso === 'g1' ? 'g3' : 'g1';
+                fetch(`${serverUrl}/carros/${placa}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ piso: novoPiso })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erro ao transferir carro.');
+                })
+                .then(() => carregarDadosDoServidor())
+                .catch(error => console.error('Erro:', error));
+            }
+        }
+
+        // --- Gerenciamento de Eventos ---
+
+        // Evento de envio do formulário
+        formAdicionar.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const placa = placaInput.value.toUpperCase().trim();
+            const piso = pisoSelect.value;
+            const horaEntrada = new Date().toLocaleTimeString('pt-BR');
+
+            // Validação do formato da placa
+            if (!placaRegex.test(placa)) {
+                erroPlaca.classList.add('visible');
+                return;
+            } else {
+                erroPlaca.classList.remove('visible');
+            }
+
+            adicionarCarro(placa, piso, horaEntrada);
+            placaInput.value = ''; // Limpa o campo de entrada
+        });
+
+        // Evento para validar a placa em tempo real enquanto o usuário digita
+        placaInput.addEventListener('input', () => {
+            const placa = placaInput.value.toUpperCase().trim();
+            if (placaRegex.test(placa) || placa.length < 7) {
+                erroPlaca.classList.remove('visible');
+            } else {
+                erroPlaca.classList.add('visible');
+            }
+        });
+
+        // Delegação de eventos para os botões "Remover" e "Transferir"
+        document.addEventListener('click', (e) => {
+            // Se o clique foi no botão de remover
+            if (e.target.classList.contains('remover-btn')) {
+                const placa = e.target.closest('.carro-item').dataset.placa;
+                removerCarro(placa);
+            }
+            // Se o clique foi no botão de transferir
+            if (e.target.classList.contains('transferir-btn')) {
+                const placa = e.target.closest('.carro-item').dataset.placa;
+                transferirCarro(placa);
+            }
+        });
+
+        // Chamada inicial para carregar a lista ao carregar a página
+        carregarDadosDoServidor();
+    </script>
+</body>
+</html>
